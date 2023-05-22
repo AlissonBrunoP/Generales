@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generales 4 - Alisson Bruno</title>
+  </head>
+  <body>
+    <form id="id_formulario">
+      <label for="id_estrellas">Cantidad de estrellas</label>
+      <input type="number" id="id_estrellas" min="1" max="5" />
+      <input type="button" id="id_boton" value="Consultar" />
+    </form>
+    <table id="id_tabla"></table>
+    <p id="id_parrafo"></p>
+
+    <script>
+      class Sistema {
+        constructor() {
+          this.listaActividades = [];
+          this.listaHoteles = [];
+          this.listaPromociones = [];
+        }
+        obtenerPromocionPorNombre(nombre) {
+          return this.listaPromociones.find(
+            (promocion) => promocion.nombre === nombre
+          );
+        }
+
+        obtenerHotelPorNombre(nombre) {
+          return this.listaHoteles.find((hotel) => hotel.nombre === nombre);
+        }
+
+        obtenerCantidadActividadesAptasNinos(promocion) {
+          return promocion.actividades.reduce((count, actividad) => {
+            if (actividad.paraNinos) {
+              return count + 1;
+            }
+            return count;
+          }, 0);
+        }
+        registrarActividad(nombre, duracion, paraNinos) {
+          const actividad = new Actividad(nombre, duracion, paraNinos);
+          this.listaActividades.push(actividad);
+        }
+
+        registrarHotel(nombre, direccion, estrellas) {
+          const hotel = new Hotel(nombre, direccion, estrellas);
+          this.listaHoteles.push(hotel);
+        }
+
+        registrarPromocion(hotelNombre, actividadesNombres, nombre, costo) {
+          const hotel = this.obtenerHotelPorNombre(hotelNombre);
+          const actividades = actividadesNombres.map((nombre) =>
+            this.obtenerActividadPorNombre(nombre)
+          );
+          const promocion = new Promocion(hotel, actividades, nombre, costo);
+          this.listaPromociones.push(promocion);
+        }
+
+        consultarHotelesConPromocionesActividadesParaNinos(
+          cantidadActividadesParaNinos
+        ) {
+          return this.listaHoteles.filter((hotel) => {
+            const promociones = this.listaPromociones.filter(
+              (promocion) => promocion.hotel === hotel
+            );
+            const promocionesConActividadesParaNinos = promociones.filter(
+              (promocion) =>
+                this.obtenerCantidadActividadesAptasNinos(promocion) >=
+                cantidadActividadesParaNinos
+            );
+            return promocionesConActividadesParaNinos.length >= 3;
+          });
+        }
+
+        altaMultiple(arrayActividades, nombrePromocion, costoPromocion) {
+          arrayActividades.forEach((actividadData) => {
+            const actividad = new Actividad(
+              actividadData.nombre,
+              actividadData.duracion,
+              actividadData.paraNinos
+            );
+            this.registrarActividad(actividad);
+          });
+
+          this.listaHoteles.forEach((hotel) => {
+            const actividades = arrayActividades.map((actividadData) =>
+              this.obtenerActividadPorNombre(actividadData.nombre)
+            );
+            const promocion = new Promocion(
+              hotel,
+              actividades,
+              nombrePromocion,
+              costoPromocion
+            );
+            this.registrarPromocion(
+              hotel.nombre,
+              actividades.map((actividad) => actividad.nombre),
+              nombrePromocion,
+              costoPromocion
+            );
+          });
+        }
+        consultarPromocionesMaxActividadesOrdenadasPorCosto() {
+          const promocionesMaxActividades = this.listaPromociones.reduce(
+            (result, promocion) => {
+              const maxActividadesCount = Math.max(
+                ...result.map((p) => p.actividades.length)
+              );
+              if (promocion.actividades.length === maxActividadesCount) {
+                result.push(promocion);
+              } else if (promocion.actividades.length > maxActividadesCount) {
+                result = [promocion];
+              }
+              return result;
+            },
+            []
+          );
+
+          return promocionesMaxActividades.sort((a, b) => b.costo - a.costo);
+        }
+      }
+
+      function consulta() {
+        const estrellasInput = document.getElementById("id_estrellas");
+        const estrellas = parseInt(estrellasInput.value);
+        const tabla = document.getElementById("id_tabla");
+        tabla.innerHTML = "";
+        const hotelesFiltrados = sistema.filtrarHotelesPorEstrellas(estrellas);
+
+        if (hotelesFiltrados.length > 0) {
+          hotelesFiltrados.forEach((hotel) => {
+            const fila = tabla.insertRow();
+            const nombreCell = fila.insertCell();
+            const direccionCell = fila.insertCell();
+            const estrellasCell = fila.insertCell();
+
+            nombreCell.textContent = hotel.nombre.toUpperCase();
+            direccionCell.textContent = hotel.direccion.toLowerCase();
+            estrellasCell.textContent = "*".repeat(hotel.estrellas);
+          });
+        } else {
+          const fila = tabla.insertRow();
+          const sinDatosCell = fila.insertCell();
+          sinDatosCell.colSpan = 3;
+          sinDatosCell.textContent = "Sin datos";
+        }
+        const porcentaje =
+          sistema.calcularPorcentajeHotelesConEstrellas(estrellas);
+        const parrafo = document.getElementById("id_parrafo");
+
+        if (porcentaje !== null) {
+          if (porcentaje > 50) {
+            parrafo.textContent =
+              "La cantidad de hoteles con exactamente " +
+              estrellas +
+              " estrellas es más del 50% de todos los hoteles.";
+          } else {
+            parrafo.textContent =
+              "La cantidad de hoteles con exactamente " +
+              estrellas +
+              " estrellas no es más del 50% de todos los hoteles.";
+          }
+        } else {
+          parrafo.textContent = "Sin datos";
+        }
+      }
+    </script>
+  </body>
+</html>
