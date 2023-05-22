@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generales dos - Alisson Bruno</title>
+  </head>
+  <body>
+    <script>
+      class Sistema {
+        constructor() {
+          this.listaPintores = [];
+          this.listaContratos = [];
+          this.listaClientes = [];
+          this.listaJornadas = [];
+        }
+        registrarPintor(nombre, edad, celular) {
+          const pintor = new Pintor(nombre, edad, celular);
+          this.listaPintores.push(pintor);
+        }
+        registrarCliente(nombre, direccion, depto) {
+          const cliente = new Cliente(nombre, direccion, depto);
+          this.listaClientes.push(cliente);
+        }
+        registrarContrato(cliente, listaPintores, m2, costo) {
+          const contrato = new Contrato(cliente, listaPintores, m2, costo);
+          this.listaContratos.push(contrato);
+        }
+        registrarJornada(contrato, pintor, m2, descripcion, problema) {
+          const jornada = new Jornada(
+            contrato,
+            pintor,
+            m2,
+            descripcion,
+            problema
+          );
+          this.listaJornadas.push(jornada);
+        }
+        obtenerContratosEnCurso() {
+          const contratosEnCurso = this.listaContratos.filter((contrato) => {
+            const m2Pintados = this.calcularMetrosCuadradosPintados(contrato);
+            return m2Pintados < contrato.m2;
+          });
+
+          return contratosEnCurso.sort(
+            (a, b) => a.cliente.depto - b.cliente.depto
+          );
+        }
+        calcularMetrosCuadradosPintados(contrato) {
+          let m2Pintados = 0;
+          this.listaJornadas.forEach((jornada) => {
+            if (jornada.contrato === contrato) {
+              m2Pintados += jornada.m2;
+            }
+          });
+          return m2Pintados;
+        }
+        obtenerPintoresSinContrato(contrato) {
+          const pintoresAsignados = contrato.listaPintores;
+          const pintoresSinContrato = this.listaPintores.filter((pintor) => {
+            return !pintoresAsignados.includes(pintor);
+          });
+          return pintoresSinContrato;
+        }
+        obtenerProblemaMasFrecuente(problemas) {
+          const problemasFrecuentes = {};
+          let maxFrecuencia = 0;
+
+          this.listaJornadas.forEach((jornada) => {
+            if (problemas.includes(jornada.problema)) {
+              if (!problemasFrecuentes[jornada.problema]) {
+                problemasFrecuentes[jornada.problema] = 0;
+              }
+              problemasFrecuentes[jornada.problema]++;
+              maxFrecuencia = Math.max(
+                maxFrecuencia,
+                problemasFrecuentes[jornada.problema]
+              );
+            }
+          });
+
+          const problemasMasFrecuentes = Object.keys(
+            problemasFrecuentes
+          ).filter(
+            (problema) => problemasFrecuentes[problema] === maxFrecuencia
+          );
+
+          return problemasMasFrecuentes.length > 0
+            ? problemasMasFrecuentes
+            : "No se encontraron problemas frecuentes";
+        }
+      }
+
+      function consulta() {
+        const departamento = parseInt(
+          document.getElementById("idDepartamento").value
+        );
+        const contratosEnCurso = sistema.obtenerContratosEnCurso(departamento);
+
+        const tabla = document.getElementById("idTabla");
+        tabla.innerHTML = "";
+
+        if (contratosEnCurso.length === 0) {
+          const fila = document.createElement("tr");
+          const celda = document.createElement("td");
+          celda.textContent = "SIN DATOS";
+          celda.colSpan = 3;
+          fila.appendChild(celda);
+          tabla.appendChild(fila);
+        } else {
+          for (let i = 0; i < contratosEnCurso.length; i++) {
+            const contrato = contratosEnCurso[i];
+            const fila = document.createElement("tr");
+            if (i % 2 === 0) {
+              fila.classList.add("fila-mayuscula");
+            } else {
+              fila.classList.add("fila-minuscula");
+            }
+            const celdaMetros = document.createElement("td");
+            celdaMetros.textContent = contrato.metrosCuadrados;
+
+            const celdaCliente = document.createElement("td");
+            celdaCliente.textContent = contrato.cliente.getNombre();
+
+            const celdaPintores = document.createElement("td");
+            celdaPintores.textContent = contrato.getPintoresAsignados().length;
+            fila.appendChild(celdaMetros);
+            fila.appendChild(celdaCliente);
+            fila.appendChild(celdaPintores);
+            tabla.appendChild(fila);
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

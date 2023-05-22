@@ -1,0 +1,100 @@
+ALISSON BRUNO
+
+class Pintor {
+  constructor(nombre, edad, celular) {
+    this.nombre = nombre;
+    this.edad = edad;
+    this.celular = celular;
+  }
+}
+
+class Cliente {
+  constructor(nombre, direccion, depto) {
+    this.nombre = nombre;
+    this.direccion = direccion;
+    this.depto = depto; // 1 a 19
+  }
+}
+
+class Contrato {
+  constructor(cliente, listaPintores, m2, costo) {
+    this.cliente = cliente; // objeto cliente
+    this.listaPintores = listaPintores; // array de objetos pintor
+    this.m2 = m2;
+    this.costo = costo;
+  }
+}
+
+class Jornada {
+  constructor(contrato, pintor, m2, descripcion, problema) {
+    this.contrato = contrato; // objeto contrato
+    this.pintor = pintor; // objeto pintor
+    this.m2 = m2;
+    this.descripcion = descripcion;
+    this.problema = problema; // número del 0 al 9
+  }
+}
+
+class SistemaGestionPintura {
+  constructor() {
+    this.pintores = [];
+    this.clientes = [];
+    this.contratos = [];
+    this.jornadas = [];
+  }
+
+  registrarPintor(nombre, edad, celular) {
+    const pintor = new Pintor(nombre, edad, celular);
+    this.pintores.push(pintor);
+  }
+
+  registrarCliente(nombre, direccion, depto) {
+    const cliente = new Cliente(nombre, direccion, depto);
+    this.clientes.push(cliente);
+  }
+
+  registrarContrato(cliente, listaPintores, m2, costo) {
+    const contrato = new Contrato(cliente, listaPintores, m2, costo);
+    this.contratos.push(contrato);
+  }
+
+  registrarJornadaPintura(contrato, pintor, m2, descripcion, problema) {
+    const jornada = new Jornada(contrato, pintor, m2, descripcion, problema);
+    this.jornadas.push(jornada);
+  }
+
+  contratosEnCurso() {
+    const contratosEnCurso = [];
+    for (const contrato of this.contratos) {
+      const metrosPintados = this.jornadas
+        .filter((jornada) => jornada.contrato === contrato)
+        .reduce((total, jornada) => total + jornada.m2, 0);
+      if (metrosPintados < contrato.m2) {
+        contratosEnCurso.push(contrato);
+      }
+    }
+    contratosEnCurso.sort((a, b) => a.cliente.depto - b.cliente.depto);
+    return contratosEnCurso;
+  }
+
+  pintoresSinContrato(contrato) {
+    const pintoresContrato = contrato.listaPintores;
+    const pintoresSinContrato = [];
+    for (const pintor of pintoresContrato) {
+      let tieneContrato = false;
+      for (const c of this.contratos) {
+        if (c !== contrato && c.listaPintores.includes(pintor)) {
+          tieneContrato = true;
+          break;
+        }
+      }
+      if (!tieneContrato) {
+        pintoresSinContrato.push(pintor);
+      }
+    }
+    return pintoresSinContrato;
+  }
+
+  problemasFrecuentes(problemas) {
+    const contadorProblemas = {};
+    for (

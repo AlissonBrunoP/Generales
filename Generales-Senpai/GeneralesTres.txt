@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generales tres - Alisson Bruno</title>
+  </head>
+  <body>
+    <script>
+      class Sistema {
+        constructor() {
+          this.listaActividades = [];
+          this.listaHoteles = [];
+          this.listaPromociones = [];
+        }
+
+        registrarActividad(nombre, duracion, paraNinos) {
+          const actividad = new Actividad(nombre, duracion, paraNinos);
+          this.listaActividades.push(actividad);
+        }
+        registrarHotel(nombre, direccion, estrellas) {
+          const hotel = new Hotel(nombre, direccion, estrellas);
+          this.listaHoteles.push(hotel);
+        }
+        registrarPromocion(hotel, actividades, nombre, costo) {
+          const promocion = new Promocion(hotel, actividades, nombre, costo);
+          this.listaPromociones.push(promocion);
+        }
+        consultarHotelesConPromocionesActividadesParaNinos(
+          cantidadActividadesParaNinos
+        ) {
+          return this.listaHoteles.filter((hotel) => {
+            const promociones = this.listaPromociones.filter(
+              (promocion) => promocion.hotel === hotel
+            );
+            const promocionesConActividadesParaNinos = promociones.filter(
+              (promocion) =>
+                promocion.actividades.filter((actividad) => actividad.paraNinos)
+                  .length >= cantidadActividadesParaNinos
+            );
+            return promocionesConActividadesParaNinos.length >= 3;
+          });
+        }
+        altaMultiple(arrayActividades, nombrePromocion, costoPromocion) {
+          arrayActividades.forEach((actividadData) => {
+            const actividad = new Actividad(
+              actividadData.nombre,
+              actividadData.duracion,
+              actividadData.paraNinos
+            );
+            this.listaActividades.push(actividad);
+          });
+
+          this.listaHoteles.forEach((hotel) => {
+            const actividades = arrayActividades.map((actividadData) =>
+              this.listaActividades.find(
+                (actividad) => actividad.nombre === actividadData.nombre
+              )
+            );
+            const promocion = new Promocion(
+              hotel,
+              actividades,
+              nombrePromocion,
+              costoPromocion
+            );
+            this.listaPromociones.push(promocion);
+          });
+        }
+        consultarPromocionesMaxActividadesOrdenadasPorCosto() {
+          const maxActividades = Math.max(
+            ...this.listaPromociones.map(
+              (promocion) => promocion.actividades.length
+            )
+          );
+
+          return this.listaPromociones
+            .filter(
+              (promocion) => promocion.actividades.length === maxActividades
+            )
+            .sort((a, b) => b.costo - a.costo);
+        }
+      }
+    </script>
+  </body>
+</html>
