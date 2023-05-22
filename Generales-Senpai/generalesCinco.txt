@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generales 5 - Alisson Bruno</title>
+  </head>
+  <body>
+    <form id="id_formulario">
+      <label for="id_Rubro">Rubro</label>
+      <input type="number" id="id_Rubro" min="”1”" max="”7”" required />
+      <label for="”id_Incluye”">Palabra a incluir</label>
+      <input type="text" id="id_Incluye" required” />
+      <input type="button" id="id_Boton" value="Consultar" />
+    </form>
+    <ul id="id_Lista"></ul>
+
+    <script>
+            class Sistema {
+              constructor() {
+                this.listaStands = [];
+                this.listaAlquileres = [];
+                this.listaArtesanos = [];
+              }
+              registrarStand(tamaño, descripcion, piso, codigo) {
+                const stand = new Stand(tamaño, descripcion, piso, codigo);
+                this.listaStands.push(stand);
+              }
+              registrarArtesano(nombre, direccion, rubro) {
+                const artesano = new Artesano(nombre, direccion, rubro);
+                this.listaArtesanos.push(artesano);
+              }
+              alquilarStand(stand, artesano, costo, formaPago) {
+                const alquiler = new Alquiler(stand, artesano, costo, formaPago);
+                this.listaAlquileres.push(alquiler);
+              }
+              consultarDisponibilidad(piso) {
+                const standsDisponibles = this.listaStands.filter((stand) => {
+                  return stand.piso === piso && !this.standAlquilado(stand);
+                });
+
+                standsDisponibles.sort((a, b) => b.tamaño - a.tamaño);
+
+                return standsDisponibles;
+              }
+              standAlquilado(stand) {
+                return this.listaAlquileres.some((alquiler) => {
+                  return alquiler.stand === stand;
+                });
+              }
+              obtenerArtesanosAltaPresencia() {
+                const artesanosAltaPresencia = [];
+
+                for (const artesano of this.listaArtesanos) {
+                  const pisosAlquilados =
+                    this.obtenerPisosAlquiladosPorArtesano(artesano);
+
+                  if (pisosAlquilados.length === 10) {
+                    artesanosAltaPresencia.push(artesano);
+                  }
+                }
+
+                return artesanosAltaPresencia;
+              }
+              obtenerPisosAlquiladosPorArtesano(artesano) {
+                const pisosAlquilados = [];
+
+                for (const alquiler of this.listaAlquileres) {
+                  if (
+                    alquiler.artesano === artesano &&
+                    !pisosAlquilados.includes(alquiler.stand.piso)
+                  ) {
+                    pisosAlquilados.push(alquiler.stand.piso);
+                  }
+                }
+
+                return pisosAlquilados;
+              }
+              consultarRubrosMaximaCantidadStands() {
+                const rubros = {};
+
+                for (const alquiler of this.listaAlquileres) {
+                  const rubro = alquiler.artesano.rubro;
+
+                  if (rubros.hasOwnProperty(rubro)) {
+                    rubros[rubro]++;
+                  } else {
+                    rubros[rubro] = 1;
+                  }
+                }
+
+                const maxCantidadStands = Math.max(...Object.values(rubros));
+
+                const rubrosMaxCantidadStands = [];
+
+                for (const rubro in rubros) {
+                  if (rubros[rubro] === maxCantidadStands) {
+                    rubrosMaxCantidadStands.push(rubro);
+                  }
+                }
+
+                return rubrosMaxCantidadStands.join("-");
+              }
+            }
+
+            consulta() {
+          const rubroInput = document.getElementById("id_Rubro");
+          const incluyeInput = document.getElementById("id_Incluye");
+          const listaElement = document.getElementById("id_Lista");
+
+          // Obtener los valores ingresados en el formulario
+          const rubro = parseInt(rubroInput.value);
+          const incluye = incluyeInput.value.toLowerCase();
+
+          // Filtrar los artesanos que cumplen con los criterios de búsqueda
+          const resultados = this.listaArtesanos.filter(artesano => {
+            const cumpleRubro = artesano.rubro === rubro;
+            const cumpleTexto = artesano.nombre.toLowerCase().includes(incluye) || artesano.direccion.toLowerCase().includes(incluye);
+            return cumpleRubro && cumpleTexto;
+          });
+
+          // Limpiar la lista antes de cargar los nuevos resultados
+          listaElement.innerHTML = "";
+
+          // Mostrar los resultados en la lista
+          if (resultados.length > 0) {
+            resultados.forEach(artesano => {
+              const item = document.createElement("li");
+              const nombre = artesano.nombre.replace(new RegExp(incluye, "gi"), `#${incluye.toUpperCase()}#`);
+              const direccion = artesano.direccion.replace(new RegExp(incluye, "gi"), `#${incluye.toUpperCase()}#`);
+              item.textContent = `${nombre} ${direccion}`;
+              listaElement.appendChild(item);
+            });
+          } else {
+            const item = document.createElement("li");
+            item.textContent = "sin datos";
+            listaElement.appendChild(item);
+          }
+        }
+      }
+            let sistema = new Sistema();
+            window.addEventListener("load", inicio);
+
+            function inicio() {
+              document
+                .getElementById("id_Boton")
+                .addEventListener("click", () => sistema.consulta());
+            }
+    </script>
+  </body>
+</html>
